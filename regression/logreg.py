@@ -104,7 +104,8 @@ class BaseRegressor():
         self.W = np.random.randn(self.num_feats + 1).flatten()
         self.loss_hist_train = []
         self.loss_hist_val = []
-        
+
+
 # Implement logistic regression as a subclass
 class LogisticRegressor(BaseRegressor):
 
@@ -116,10 +117,15 @@ class LogisticRegressor(BaseRegressor):
             max_iter=max_iter,
             batch_size=batch_size
         )
-    
+        self.epsilon = 1e-6  # Small value to prevent numerical instability
+
+    def sigmoid(self, x):
+        """Applies the sigmoid function."""
+        return 1 / (1 + np.exp(-x))
+
     def make_prediction(self, X) -> np.array:
         """
-        TODO: Implement logistic function to get estimates (y_pred) for input X values. The logistic
+        Implement logistic function to get estimates (y_pred) for input X values. The logistic
         function is a transformation of the linear model into an "S-shaped" curve that can be used
         for binary classification.
 
@@ -129,11 +135,17 @@ class LogisticRegressor(BaseRegressor):
         Returns: 
             The predicted labels (y_pred) for given X.
         """
-        pass
+        # Validate input
+        if np.isnan(X).any():
+            raise ValueError("`X` must be non-empty and not contain NaN values.")
+        if not np.issubdtype(X.dtype, np.number):
+            raise ValueError("`X` must contain only numeric data.")
+
+        return self.sigmoid(np.dot(X, self.W))
     
     def loss_function(self, y_true, y_pred) -> float:
         """
-        TODO: Implement binary cross entropy loss, which assumes that the true labels are either
+        Implement binary cross entropy loss, which assumes that the true labels are either
         0 or 1. (This can be extended to more than two classes, but here we have just two.)
 
         Arguments:
@@ -143,11 +155,28 @@ class LogisticRegressor(BaseRegressor):
         Returns: 
             The mean loss (a single number).
         """
-        pass
+        # Validate input
+        if not len(y_true) == len(y_pred):
+            raise ValueError("Lengths of `y_true` and `y_pred` do not match.")
+        if len(y_true) == 0:
+            return 0  # No data, return 0 loss
+        if not np.issubdtype(y_true.dtype, np.number):
+            raise ValueError("`y_true` should contain numeric data only.")
+        if not np.issubdtype(y_pred.dtype, np.number):
+            raise ValueError("`y_pred` should contain numeric data only.")
+
+        n = len(y_true)
+
+        # Add epsilon for numerical stability
+        loss = -1 / n * np.sum(
+            y_true * np.log(y_pred + self.epsilon) + (1 - y_true) * np.log(1 - y_pred + self.epsilon)
+        )
+
+        return loss
         
     def calculate_gradient(self, y_true, X) -> np.ndarray:
         """
-        TODO: Calculate the gradient of the loss function with respect to the given data. This
+        Calculate the gradient of the loss function with respect to the given data. This
         will be used to update the weights during training.
 
         Arguments:
@@ -157,4 +186,11 @@ class LogisticRegressor(BaseRegressor):
         Returns: 
             Vector of gradients.
         """
-        pass
+        # Make predictions
+        y_pred = self.make_prediction(X)
+
+        # Compute gradient
+        n = len(y_true)
+        gradient = 1 / n * np.dot(X.T, y_pred - y_true)
+
+        return gradient

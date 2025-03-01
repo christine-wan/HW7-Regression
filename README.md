@@ -1,4 +1,4 @@
-[![HW7-Regression](https://github.com/christine-wan/HW7-Regression/actions/workflows/test.yml/badge.svg?event=push)](https://github.com/christine-wan/HW7-Regression/actions/workflows/test.yml)
+[![HW7-Regression](https://github.com/christine-wan/HW7-Regression/actions/workflows/test.yml/badge.svg)](https://github.com/christine-wan/HW7-Regression/actions/workflows/test.yml)
 
 # HW 7: Logistic regression
 
